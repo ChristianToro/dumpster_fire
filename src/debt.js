@@ -65,6 +65,13 @@ export function monthlySeries(series) {
   return [...months.values()];
 }
 
+// Last record of each UTC calendar year, for the chart's table view. The current year is "as of" its latest record.
+export function yearEndSeries(series) {
+  const years = new Map();
+  for (const point of series) years.set(new Date(point.date).getUTCFullYear(), point);
+  return [...years.values()];
+}
+
 const usd = new Intl.NumberFormat('en-US', {
   style: 'currency',
   currency: 'USD',
@@ -74,6 +81,12 @@ const usd = new Intl.NumberFormat('en-US', {
 // Whole dollars: about $40T with cents is more digits than a double holds exactly.
 export function formatUSD(value) {
   return usd.format(value);
+}
+
+// "$40.3T" for chart labels; "$0" at the baseline.
+export function formatTrillions(value, digits = 1) {
+  if (value === 0) return '$0';
+  return `$${(value / 1e12).toFixed(digits)}T`;
 }
 
 const recordDate = new Intl.DateTimeFormat('en-US', {

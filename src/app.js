@@ -6,7 +6,10 @@ import {
   formatUSD,
   formatRatePerDay,
   formatRecordDate,
+  monthlySeries,
+  yearEndSeries,
 } from './debt.js';
+import { mountDebtChart, renderYearTable } from './chart.js';
 
 const SOURCE_URL = 'https://fiscaldata.treasury.gov/datasets/debt-to-the-penny/';
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -20,6 +23,10 @@ const caption = document.querySelector('[data-caption]');
 // Start fetching on load so the data is usually ready before the first click.
 const data = fetchDebtSeries().then((series) => ({ series, rate: dailyRate(series) }));
 data.then(renderCaption, renderError);
+data.then(({ series }) => {
+  mountDebtChart(document.querySelector('[data-chart]'), monthlySeries(series));
+  renderYearTable(document.querySelector('[data-year-table]'), yearEndSeries(series));
+}, () => {});
 
 let stopTicker = () => {};
 
@@ -66,6 +73,7 @@ function renderCaption({ series, rate }) {
 }
 
 function renderError() {
+  document.querySelector('.chart').hidden = true;
   ticker.textContent = '—';
   caption.textContent = "Couldn't reach fiscaldata.treasury.gov.";
   summary.textContent = 'The debt figure could not be loaded.';

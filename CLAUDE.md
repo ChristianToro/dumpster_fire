@@ -43,6 +43,14 @@ These are pure functions with no DOM access, which is why Node can test them.
 - **Data loading:** the API fetch starts on page load, not on click.
 - **Ticker:** redraws every `requestAnimationFrame` while the debt view is open, or once a second under `prefers-reduced-motion`. It stops on returning to landing. The visible number is `aria-hidden`; screen readers get the static `[data-ticker-summary]` text instead.
 
+## Chart (`src/chart.js`)
+
+- **`mountDebtChart(container, monthlySeries(series))`:** draws a hand-built SVG at the container's real pixel width and redraws through a `ResizeObserver`. While the debt view is hidden the width is 0, so it waits and draws once the view is shown.
+- **Hover and keyboard:** a crosshair snaps to the nearest month. The SVG is focusable: ←/→ steps a month, PgUp/PgDn steps a year, and Home/End jump to the ends. The tooltip is `aria-live`.
+- **Table view:** `renderYearTable()` fills the "Year-end values" `<details>` table so no value depends on hovering. Build tooltip and table text with `textContent`.
+- **Series color:** `--series: #fa541c` was checked with the dataviz skill's `validate_palette.js` (`--mode dark --surface "#0c101b"`). The site accent `#ff941e` fails the dark lightness band, so don't reuse it for chart marks.
+- **No legend:** there is one series, so the `<figcaption>` names it.
+
 ## Dumpster component (`asset/`)
 
 - `asset/dumpster.js`: an IIFE that holds the whole artwork as one inline SVG string (`artwork`). `mountDumpsterFires(root = document)` puts that SVG into every `[data-dumpster-fire]` element that doesn't already contain an `<svg>`, so it is safe to call more than once. It runs automatically on DOMContentLoaded and is also exposed as `window.mountDumpsterFires`.

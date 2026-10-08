@@ -196,3 +196,55 @@ Key symbols: `startTicker()`, `renderCaption()`, `renderError()`, `flip()`.
 The first browser run showed the error state, with Chrome reporting a CORS block. curl had shown `Access-Control-Allow-Origin: *`. The cause turned out to be Treasury's WAF: it answers the `HeadlessChrome` user agent with an HTML 500 that has no CORS header, while a normal Chrome user agent gets the JSON. This only affects automated testing, not real visitors. The test driver now sends a normal user agent.
 
 The caption first wrapped badly at 375px, so it was rewritten as three short lines.
+
+### Interaction 6 — Commit milestone 2, then Milestone 3: chart
+
+**User Prompt**
+
+> commit milestone 2 and continue
+
+**Agent Outcome**
+
+Committed milestone 2 as `29787dd`. Built milestone 3, which is not committed yet and is waiting for review. It adds a hand-built SVG chart, "Total public debt outstanding since 2000", in the middle of the debt view:
+- **Plot:** a 2px line with a 10% area wash over 322 month-end points. Y gridlines every $10T, x labels every 5 years (every 10 below 480px wide), and an end dot labeled `$40.3T`.
+- **Hover:** a crosshair snaps to the nearest month and shows a tooltip such as `$23.41T · Feb 28, 2020`.
+- **Keyboard:** the chart is focusable and navigable with ←/→, PgUp/PgDn and Home/End.
+- **Table view:** a "Year-end values" `<details>` table lists full-dollar figures from 2000 to 2026.
+- **Errors:** the chart is hidden on fetch failure.
+
+**Implementation**
+
+- [`src/chart.js`](src/chart.js): `mountDebtChart()`, `renderYearTable()`
+
+**Rationale**
+
+The dataviz skill guided the details:
+- **No legend:** with a single series, the title names it.
+- **Table view:** a table backs up the tooltip, so no value is available only on hover.
+- **Color:** chosen by running the validator, not by eye.
+
+The site accent `#ff941e` failed the dark-mode lightness band (L 0.764, band 0.48–0.67). `#fa541c`, the outer flame color already in the dumpster SVG, passes, so it became `--series`. The chart redraws at the real container width instead of scaling a fixed viewBox, so axis text keeps its size on phones.
+
+**Changes**
+
+- `src/chart.js`: created.
+- `src/debt.js`: added `yearEndSeries()` and `formatTrillions()`, each with a test.
+- `index.html`: added the chart `<figure>` and the table markup.
+- `src/app.js`: mounts the chart and table when data arrives, and hides the chart on error.
+- `site.css`: added chart styles and tokens (`--series`, `--grid`, `--raised`).
+- `CLAUDE.md`: added a chart section.
+
+**Verification**
+
+- `node --test`: 13 passed.
+- Headless Chrome at 1280px and 375px:
+  - **Rendering:** the SVG renders at 960×360 and 343×220 with the expected ticks.
+  - **Hover:** hovering near March 2020 shows `$23.41T` for Feb 28, 2020.
+  - **Keyboard:** focus shows the latest value (`$40.28T`, Oct 7, 2026). ArrowLeft moves to Sep 30, 2026, and Home to Jan 31, 2000.
+  - **Table:** 27 rows, Dec 29, 2000 ($5,662,216,013,697) through Oct 7, 2026.
+  - **Layout and console:** no horizontal scroll and no console errors.
+- Screenshots were reviewed.
+
+**Attempted Approach / Resolution**
+
+The first render showed an empty pill under the chart. The hidden tooltip was still visible because `.chart-tooltip { display: grid }` overrode the `hidden` attribute. Fixed with a `[hidden] { display: none }` rule. The top plot margin was also cut from 24px to 12px.

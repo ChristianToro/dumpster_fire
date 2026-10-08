@@ -20,6 +20,18 @@
       <p class="ticker" aria-hidden="true">Loading…</p>
       <p class="sr-only" data-ticker-summary></p>
       <p class="caption" data-caption></p>
+
+      <figure class="chart">
+        <figcaption class="chart-title">Total public debt outstanding since 2000</figcaption>
+        <div class="chart-plot" data-chart></div>
+        <details class="chart-table">
+          <summary>Year-end values</summary>
+          <table>
+            <thead><tr><th scope="col">Date</th><th scope="col">Total public debt</th></tr></thead>
+            <tbody data-year-table></tbody>
+          </table>
+        </details>
+      </figure>
     </section>
   </main>
   <script src="asset/dumpster.js" defer></script>

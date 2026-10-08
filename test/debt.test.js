@@ -12,6 +12,8 @@ import {
   formatUSD,
   formatRatePerDay,
   formatRecordDate,
+  formatTrillions,
+  yearEndSeries,
 } from '../src/debt.js';
 
 // Real rows from the API, fetched 2026-10-08 (newest first, as returned with sort=-record_date).
@@ -82,6 +84,21 @@ test('monthlySeries keeps the last record of each month', () => {
     monthly.map((p) => new Date(p.date).toISOString().slice(0, 10)),
     ['2026-09-30', '2026-10-07'],
   );
+});
+
+test('yearEndSeries keeps the last record of each year', () => {
+  const rows = parseRows([
+    { record_date: '2000-06-30', tot_pub_debt_out_amt: '1' },
+    { record_date: '2000-12-29', tot_pub_debt_out_amt: '2' },
+    { record_date: '2001-03-01', tot_pub_debt_out_amt: '3' },
+  ]);
+  assert.deepEqual(yearEndSeries(rows).map((p) => p.value), [2, 3]);
+});
+
+test('formatTrillions compacts chart labels', () => {
+  assert.equal(formatTrillions(40284036147367.19), '$40.3T');
+  assert.equal(formatTrillions(10e12, 0), '$10T');
+  assert.equal(formatTrillions(0, 0), '$0');
 });
 
 test('formatUSD shows whole dollars', () => {
