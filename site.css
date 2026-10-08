@@ -42,7 +42,10 @@ main {
 [data-view="debt"] .dumpster-button { width: 88px; border-radius: 6px; }
 [data-view="debt"] .dumpster-fire { border-radius: 6px; }
 
-.debt { display: none; width: min(960px, 100%); text-align: center; }
+/* min-width: 0 on the grid items lets them shrink below the SVG's drawn width. Without it the
+   chart's fixed width="960" from a desktop render pins the column open on a narrower screen, and
+   the ResizeObserver never sees a smaller width to redraw at. */
+.debt { display: none; width: min(960px, 100%); min-width: 0; text-align: center; }
 [data-view="debt"] .debt { display: grid; gap: .25rem; animation: debt-in .4s .2s both; }
 @keyframes debt-in { from { opacity: 0; transform: translateY(8px); } }
 
@@ -65,10 +68,11 @@ main {
 .caption .rate { color: var(--accent); }
 
 /* Chart: one series, so the title names it and there is no legend. */
-.chart { margin: 2.5rem 0 0; display: grid; gap: .75rem; }
+.chart { margin: 2.5rem 0 0; display: grid; gap: .75rem; min-width: 0; }
 .chart-title { color: var(--muted); font-size: .85rem; }
-.chart-plot { position: relative; min-height: 220px; touch-action: pan-y; }
-.chart-svg { display: block; overflow: visible; }
+.chart-plot { position: relative; min-width: 0; min-height: 220px; touch-action: pan-y; }
+/* Scales the previous render down for the frame before the ResizeObserver redraws it. */
+.chart-svg { display: block; max-width: 100%; height: auto; overflow: visible; }
 .chart-svg:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; border-radius: 4px; }
 .chart-grid { stroke: var(--grid); stroke-width: 1; }
 .chart-axis { fill: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }

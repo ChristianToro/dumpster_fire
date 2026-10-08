@@ -50,6 +50,7 @@ These are pure functions with no DOM access, which is why Node can test them.
 - **Table view:** `renderYearTable()` fills the "Year-end values" `<details>` table so no value depends on hovering. Build tooltip and table text with `textContent`.
 - **Series color:** `--series: #fa541c` was checked with the dataviz skill's `validate_palette.js` (`--mode dark --surface "#0c101b"`). The site accent `#ff941e` fails the dark lightness band, so don't reuse it for chart marks.
 - **No legend:** there is one series, so the `<figcaption>` names it.
+- **Narrowing the window:** every grid ancestor of the SVG (`.debt`, `.chart`, `.chart-plot`) needs `min-width: 0`. Without it, the SVG's last drawn `width` attribute pins the column open when the window narrows, for example on a DevTools device toggle or a phone rotation. The page then scrolls sideways and the `ResizeObserver` never redraws. A fresh load at phone width doesn't show this, so test by resizing from desktop width.
 
 ## Dumpster component (`asset/`)
 
