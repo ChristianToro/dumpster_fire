@@ -1,0 +1,35 @@
+/* Self-contained component styles; change --dumpster-background to customize. */
+.dumpster-fire {
+  --dumpster-background: #141827;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  max-width: 520px;
+  aspect-ratio: 320 / 240;
+  overflow: hidden;
+  background: var(--dumpster-background);
+  border-radius: 12px;
+}
+.dumpster-fire svg { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+.dumpster-fire .flame { transform-box: fill-box; transform-origin: center bottom; animation: dumpster-flicker .55s steps(3) infinite; }
+.dumpster-fire .flame.two { animation-delay: -.2s; animation-duration: .43s; }
+.dumpster-fire .flame.three { animation-delay: -.37s; animation-duration: .7s; }
+.dumpster-fire .smoke { animation: dumpster-smoke 2.8s steps(9) infinite; }
+.dumpster-fire .smoke.s2 { animation-delay: -.9s; }
+.dumpster-fire .smoke.s3 { animation-delay: -1.8s; }
+.dumpster-fire .ember { animation: dumpster-ember 1.7s steps(10) infinite; }
+.dumpster-fire .ember.e2 { animation-delay: -.5s; }
+.dumpster-fire .ember.e3 { animation-delay: -1.1s; }
+.dumpster-fire .ember.e4 { animation-delay: -1.4s; }
+.dumpster-fire .glow { animation: dumpster-glow .65s steps(3) infinite; }
+@keyframes dumpster-flicker { 0%,100% { transform: scaleY(1) translateY(0); } 25% { transform: scaleY(1.12) translateY(-3px); } 50% { transform: scaleY(.9) translateY(2px); } 75% { transform: scaleY(1.07) translateY(-2px); } }
+@keyframes dumpster-smoke { 0% { transform: translate(0,0) scale(.6); opacity: 0; } 20% { opacity: .6; } 100% { transform: translate(20px,-115px) scale(1.8); opacity: 0; } }
+@keyframes dumpster-ember { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-125px) translateX(22px); opacity: 0; } }
+@keyframes dumpster-glow { 0%,100% { opacity: .15; } 50% { opacity: .4; } }
+@media (prefers-reduced-motion: reduce) {
+  .dumpster-fire .flame, .dumpster-fire .smoke, .dumpster-fire .ember, .dumpster-fire .glow { animation: none; }
+}
+/* Demo page only: remove these rules if integrating into your own site. */
+body { margin: 0; min-height: 100vh; background: #0c101b; color: #f0f0f0; font: 16px system-ui, sans-serif; }
+main { padding: 2rem; display: grid; justify-items: center; gap: 1rem; }
+h1 { font-size: 1.5rem; }
