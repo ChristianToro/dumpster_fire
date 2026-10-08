@@ -96,3 +96,50 @@ Copied the approved plan verbatim to `PLAN.md`. Created `CLAUDE.md`, based on th
 **Verification**
 
 Not applicable. These are documentation files only, and there is no code to test yet.
+
+### Interaction 4 — Milestone 1: data layer
+
+**User Prompt**
+
+> execute the plan with manual approve edits. We will code in milestones. After my review of the completed work, I will either suggest modifications or to continue. Each milestone will be committed separately.
+>
+> Begin the execution on a new branch titled "v1_prototype"
+
+**Agent Outcome**
+
+Created the branch `v1_prototype`. `main` had no commits, so the branch has no history yet. Split the plan into four milestones:
+1. Data layer
+2. Page and ticker
+3. Chart
+4. Polish
+
+Built milestone 1, the pure data module and its tests. No commit yet: commits happen after the user reviews each milestone.
+
+**Implementation**
+
+- [`src/debt.js`](src/debt.js)
+- [`test/debt.test.js`](test/debt.test.js)
+
+Key symbols:
+- `buildQuery()` and `fetchDebtSeries()` (takes an injectable `fetchImpl`)
+- `parseRows()`
+- `dailyRate()`: dollars per ms over the last 5 intervals, using calendar time
+- `anchorTime()` and `projectNow()`
+- `monthlySeries()`
+- `formatUSD()` and `formatRatePerDay()`
+
+**Changes**
+
+- `src/debt.js`: created.
+- `test/debt.test.js`: created. 10 tests using the 7 real API rows from 2026-10-08. They cover the weekend gap, a negative rate, too few records, the anchor and projection, monthly downsampling, formatting, and HTTP errors.
+- `PLAN.md`: corrected the test command from `node --test test/` to `node --test`.
+- `CLAUDE.md`: added test commands and data-layer notes on units, rate semantics and the anchor.
+
+**Verification**
+
+- `node --test` gives 10 passed, 0 failed. `node --test --test-name-pattern="dailyRate"` gives 3 passed.
+- Running the helpers on the full API response saved earlier gave 6,719 rows (first 2000-01-03), 322 monthly points, `+$16.0B/day` (185,534 $/s), and a projection of $40,299,240,197,335. These match the figures in the plan.
+
+**Attempted Approach / Resolution**
+
+`node --test test/`, the command in the plan, fails on Node 24 because it reads the argument as a file pattern (`MODULE_NOT_FOUND`). Plain `node --test` finds the test files automatically.

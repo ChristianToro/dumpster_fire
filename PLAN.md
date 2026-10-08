@@ -53,7 +53,7 @@ One `fetch` covers both the ticker and the chart. It starts on page load so the 
 - **Load the `dataviz` skill** before writing `chart.js`, as the environment requires.
 
 ## Verification
-1. `node --test test/` passes.
+1. `node --test` passes. (Node 24 reads `test/` as a file pattern, not a directory, so `node --test test/` fails. With no argument it finds `test/**/*.test.js` automatically.)
 2. `python3 -m http.server 8000` from the repo root (ES modules don't load over `file://`), then open `http://localhost:8000/`:
    - Landing shows only the animated dumpster.
    - Click: the dumpster shrinks to the header, the ticker appears and rises at about `rate × 1000` dollars per second, and the chart spans 2000–2026.

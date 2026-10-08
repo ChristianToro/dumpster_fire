@@ -13,13 +13,28 @@ A lightweight, minimalist single-page site that shows the current US national de
 
 The project is plain HTML, CSS and ES modules, with no build step and no dependencies.
 
-## Running
+## Running and testing
 
 There is no build step, package manager or linter. Once the site exists, serve the repo root. ES modules don't load over `file://`.
 
     python3 -m http.server 8000
 
 The component demo alone can be opened directly at `asset/index.html`.
+
+Tests use Node's built-in runner (Node 24) and need no dependencies:
+
+    node --test                                   # all test/**/*.test.js
+    node --test --test-name-pattern="dailyRate"   # a single test by name
+
+Pass no path argument: Node 24 reads `node --test test/` as a file pattern and fails.
+
+## Data layer (`src/debt.js`)
+
+These are pure functions with no DOM access, which is why Node can test them.
+
+- **Units:** points are `{ date, value }`. `date` is ms at 00:00 UTC of `record_date` and `value` is dollars. Rates are **dollars per millisecond**.
+- **`dailyRate`:** divides by elapsed calendar time, not by the number of records. This is a decision the user made, so don't "fix" it to a per-record average.
+- **`projectNow`:** measures from `anchorTime` (the next midnight UTC after the last record), not from the moment the page loads.
 
 ## Dumpster component (`asset/`)
 
