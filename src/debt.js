@@ -76,6 +76,18 @@ export function formatUSD(value) {
   return usd.format(value);
 }
 
+const recordDate = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+
+// "Oct 7, 2026". Formatted in UTC so the record date never shifts with the viewer's timezone.
+export function formatRecordDate(ms) {
+  return recordDate.format(ms);
+}
+
 // "+$16.0B/day" from a dollars-per-ms rate.
 export function formatRatePerDay(rate) {
   const perDay = rate * DAY_MS;

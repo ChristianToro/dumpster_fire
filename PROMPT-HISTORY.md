@@ -143,3 +143,56 @@ Key symbols:
 **Attempted Approach / Resolution**
 
 `node --test test/`, the command in the plan, fails on Node 24 because it reads the argument as a file pattern (`MODULE_NOT_FOUND`). Plain `node --test` finds the test files automatically.
+
+### Interaction 5 — Commits, then Milestone 2: page and ticker
+
+**User Prompt**
+
+> separate baseline commit, then commit milestone 1 and continue
+
+**Agent Outcome**
+
+Made two commits on `v1_prototype`:
+- `e68345e` is the baseline: `asset/` plus the planning docs as they stood before milestone 1. The docs had been edited during milestone 1, so their earlier versions were reconstructed and staged with `git update-index --cacheinfo`.
+- `02677a1` is milestone 1.
+
+Then built milestone 2, which is not committed yet and is waiting for review:
+- **Landing view:** shows only the dumpster, which is a `<button>`.
+- **Click:** a FLIP animation shrinks the dumpster from 520px in the center to an 88px header icon over about 450ms, and the debt section fades in.
+- **Ticker:** redraws every animation frame from `projectNow()`. Under reduced motion it redraws once a second.
+- **Caption:** three short lines: the rate (`+$16.0B/day · 5-day average`), the official figure and its date, and a source link.
+- **Return:** clicking the header icon goes back to landing and stops the ticker.
+- **Errors:** a basic error state ("Couldn't reach fiscaldata.treasury.gov.") is in place. Retry is still planned for milestone 4.
+
+**Implementation**
+
+- [`index.html`](index.html)
+- [`site.css`](site.css)
+- [`src/app.js`](src/app.js)
+
+Key symbols: `startTicker()`, `renderCaption()`, `renderError()`, `flip()`.
+
+**Changes**
+
+- `index.html`, `site.css`, `src/app.js`: created. `index.html` includes an inline SVG favicon, which stops the `/favicon.ico` 404.
+- `src/debt.js`: added `formatRecordDate()`, which formats in UTC so the record date never shifts with the viewer's timezone. Covered by a new test.
+- `asset/dumpster.css`, `asset/index.html`: moved the demo-only `body`/`main`/`h1` rules into an inline `<style>` in the demo page.
+- `CLAUDE.md`: added a section on the page architecture and the headless-browser WAF gotcha.
+
+**Verification**
+
+- `node --test`: 11 passed.
+- Drove the real page in headless Chrome (Playwright from a local install, with the system Chrome) at 1280px and 375px:
+  - **Landing:** the debt section is hidden.
+  - **After click:** the ticker rose about $373K in 2 s, matching 2 × $185.5K/s, and the caption and screen-reader summary rendered correctly.
+  - **Layout and console:** no horizontal scroll at either width, and no console errors.
+  - **Return:** clicking back restores the landing view.
+- Sampled the shrink animation mid-flight: width went 520 → 226 → 122 → 92 → 88px.
+- The component demo at `asset/index.html` still has its own styles.
+- Screenshots of both views were reviewed.
+
+**Attempted Approach / Resolution**
+
+The first browser run showed the error state, with Chrome reporting a CORS block. curl had shown `Access-Control-Allow-Origin: *`. The cause turned out to be Treasury's WAF: it answers the `HeadlessChrome` user agent with an HTML 500 that has no CORS header, while a normal Chrome user agent gets the JSON. This only affects automated testing, not real visitors. The test driver now sends a normal user agent.
+
+The caption first wrapped badly at 375px, so it was rewritten as three short lines.

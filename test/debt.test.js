@@ -11,6 +11,7 @@ import {
   monthlySeries,
   formatUSD,
   formatRatePerDay,
+  formatRecordDate,
 } from '../src/debt.js';
 
 // Real rows from the API, fetched 2026-10-08 (newest first, as returned with sort=-record_date).
@@ -85,6 +86,10 @@ test('monthlySeries keeps the last record of each month', () => {
 
 test('formatUSD shows whole dollars', () => {
   assert.equal(formatUSD(40284036147367.19), '$40,284,036,147,367');
+});
+
+test('formatRecordDate uses the UTC calendar date', () => {
+  assert.equal(formatRecordDate(series.at(-1).date), 'Oct 7, 2026');
 });
 
 test('fetchDebtSeries parses the response and rejects HTTP errors', async () => {

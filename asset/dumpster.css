@@ -29,7 +29,3 @@
 @media (prefers-reduced-motion: reduce) {
   .dumpster-fire .flame, .dumpster-fire .smoke, .dumpster-fire .ember, .dumpster-fire .glow { animation: none; }
 }
-/* Demo page only: remove these rules if integrating into your own site. */
-body { margin: 0; min-height: 100vh; background: #0c101b; color: #f0f0f0; font: 16px system-ui, sans-serif; }
-main { padding: 2rem; display: grid; justify-items: center; gap: 1rem; }
-h1 { font-size: 1.5rem; }

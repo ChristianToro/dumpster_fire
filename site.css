@@ -1,0 +1,75 @@
+/* Page layout for the debt site. The dumpster component's own styles live in asset/dumpster.css. */
+:root {
+  --bg: #0c101b;
+  --text: #f0f0f0;
+  --muted: #8b93a7;
+  --accent: #ff941e;
+  --focus: #ffcc42;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.5 system-ui, sans-serif;
+}
+main {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 2rem;
+  padding: 2rem 16px;
+}
+[data-view="debt"] main { align-content: start; }
+
+/* The dumpster is the only control: full size on landing, a small home icon on the debt view. */
+.dumpster-button {
+  display: block;
+  width: min(520px, 100%);
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  cursor: pointer;
+}
+.dumpster-button:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
+[data-view="debt"] .dumpster-button { width: 88px; border-radius: 6px; }
+[data-view="debt"] .dumpster-fire { border-radius: 6px; }
+
+.debt { display: none; width: min(960px, 100%); text-align: center; }
+[data-view="debt"] .debt { display: grid; gap: .25rem; animation: debt-in .4s .2s both; }
+@keyframes debt-in { from { opacity: 0; transform: translateY(8px); } }
+
+.debt-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: .8rem;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.ticker {
+  margin: 0;
+  font: 700 clamp(1.5rem, 6.4vw, 3.5rem)/1.2 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.caption { display: grid; margin: .5rem 0 0; color: var(--muted); font-size: .85rem; }
+.caption a { color: inherit; }
+.caption .rate { color: var(--accent); }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-view="debt"] .debt { animation: none; }
+}
