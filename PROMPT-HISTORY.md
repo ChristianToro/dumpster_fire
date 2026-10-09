@@ -357,3 +357,45 @@ Committed the mobile fix as `2c7f7fe` on `fix-UI-graph-error`. The user pushed i
 **Attempted Approach / Resolution**
 
 The first error-state screenshot looked like the landing page. It was taken in the instant after the click, when the FLIP's first frame puts the dumpster back at its landing position and the debt section hasn't started fading in yet. Re-capturing after 600 ms showed the correct error state. This was a test-timing artifact, not a page bug.
+
+### Interaction 10 — Milestone 4 committed; README
+
+**User Prompt**
+
+> commit milestone 4
+
+> stop the local server
+
+> Write a detailed README.md file for this project explaining its design (through the planning), how the APIs are utilized, and how to run it
+
+**Agent Outcome**
+
+- Committed milestone 4 as `ce6825d` on `v2_refinement`, which the user then pushed. It is not merged into `main` at the time of writing.
+- Stopped the `python3 -m http.server 8000` process.
+- Wrote [`README.md`](README.md) on `v2_refinement`, since it documents the finished milestone 4 code. Sections:
+  - running and deploying;
+  - how the page works (with a diagram);
+  - how the Treasury API is used: endpoint, query parameters, response shape, parsing, the 5-interval calendar-time rate with a worked example using the 2026-10-08 rows (≈ $16.0B/day, compared with ≈ $22.4B/day for a per-record average), projection anchoring, downsampling, formatting, and CORS;
+  - the four planning decisions and their reasoning;
+  - visual design and the FLIP transition;
+  - project structure and reuse of the dumpster component;
+  - testing;
+  - accessibility and reduced motion;
+  - gotchas;
+  - how the project was built.
+
+**Rationale**
+
+The README explains the *why* behind the user's planning decisions and the API usage. `CLAUDE.md` stays focused on what an agent needs to edit the code.
+
+**Changes**
+
+- `README.md`: created.
+
+**Verification**
+
+- Checked the README's claims against the code and the observed data. Two drafting errors were caught and fixed:
+  - The minimum Node version had been "18+". The tests depend on Node's automatic ES-module detection, because the repo has no `package.json`, so the README now says 22.7+ or 20.19+.
+  - The caption in the diagram showed `$40.28T`, but the page prints full dollars.
+- Ran the README's commands. `node --test` passed 13 tests and the name-filtered run passed 3. `python3 -m http.server 8000` served `/`, `/asset/index.html` and `/src/app.js` with HTTP 200. The server was stopped afterwards.
+- Did not test the `git clone` step or a deployment to a static host.
