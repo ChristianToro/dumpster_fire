@@ -9,7 +9,7 @@ start of the session and keep it updated as work progresses.
 
 A lightweight, minimalist single-page site that shows the current US national debt, using data from Treasury's fiscaldata `debt_to_penny` API. The landing view shows only the animated pixel-art dumpster fire from `asset/`. Clicking it reveals two things: a live debt ticker that rises at the 5-day calendar-time average rate, and a 2000–present debt chart.
 
-`PLAN.md` holds the approved design: the file layout, the API query, and the user's decisions on rate math, ticker anchoring, the chart approach and the post-click behavior. Work proceeds in milestones on branch `v1_prototype`, and each milestone is committed separately after the user reviews it. Read `PLAN.md` before implementing, and don't re-open the decisions it records.
+`PLAN.md` holds the approved design: the file layout, the API query, and the user's decisions on rate math, ticker anchoring, the chart approach and the post-click behavior. The four planned milestones are complete. Work happens on feature branches off `main` (for example `v1_prototype`, `fix-UI-graph-error`, `v2_refinement`). The user reviews each step before it is committed, and merges into `main` themselves through pull requests. Read `PLAN.md` before implementing, and don't re-open the decisions it records.
 
 The project is plain HTML, CSS and ES modules, with no build step and no dependencies.
 
@@ -40,8 +40,13 @@ These are pure functions with no DOM access, which is why Node can test them.
 
 - **View switching:** `body[data-view]` is either `landing` or `debt`, and CSS swaps the layout. The dumpster `<button>` is the only control: it toggles the view and updates its `aria-label`.
 - **Shrink transition:** a FLIP in `app.js` (`flip()`). It measures the button, flips `data-view`, then uses the Web Animations API to animate from the old box to the new one. Size and position live in `site.css`, not in JS.
-- **Data loading:** the API fetch starts on page load, not on click.
+- **Data loading:** `load()` starts the API fetch on page load, not on click, with a 15 s `AbortSignal.timeout`.
+  - On success, `render()` runs once: it fills the caption, mounts the chart and table, unhides the `.chart` figure (hidden in the HTML until then), and starts the ticker if the debt view is open.
+  - On failure, `renderError()` shows "Couldn't reach fiscaldata.treasury.gov." and a Retry button that calls `load()` again.
+  - Retry only appears after a failure, so the chart is never mounted twice.
+- **`hidden` attribute:** `site.css` has a global `[hidden] { display: none !important }` because rules like `.chart { display: grid }` would otherwise override it. Toggle visibility with `el.hidden`.
 - **Ticker:** redraws every `requestAnimationFrame` while the debt view is open, or once a second under `prefers-reduced-motion`. It stops on returning to landing. The visible number is `aria-hidden`; screen readers get the static `[data-ticker-summary]` text instead.
+- **Reduced motion:** turns off the dumpster animations (`asset/dumpster.css`), the FLIP, and the debt section's fade-in. The ticker then updates once a second.
 
 ## Chart (`src/chart.js`)
 

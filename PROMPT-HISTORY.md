@@ -319,3 +319,83 @@ This explains why the milestone 3 check at a fixed 375px passed. The bug needs t
 - Desktop regression at 1280px: the chart is still 960×360, the hover tooltip still reads `$23.41T · Feb 28, 2020`, and there are no console errors.
 - No JS changed, so `node --test` was not affected and was not re-run.
 - Not tested on a physical iPhone or Samsung device, only Chrome's device emulation.
+
+### Interaction 9 — Fix committed; Milestone 4: error retry, reduced motion, final docs
+
+**User Prompt**
+
+> commit the fix
+
+> The fix branch was pushed, and merged to main. Begin milestone 4 on a new branch off main titled "v2_refinement"
+
+**Agent Outcome**
+
+Committed the mobile fix as `2c7f7fe` on `fix-UI-graph-error`. The user pushed it and merged it into `main` as PR #1 (merge commit `70d6ee5`). Created `v2_refinement` from that `main` and built milestone 4. It is not committed yet and is waiting for review.
+
+- **Retryable loading:** `load()` replaces the one-shot fetch, with a 15 s `AbortSignal.timeout` so a hung request can't leave "Loading…" up forever. On failure the caption shows "Couldn't reach fiscaldata.treasury.gov." and a **Retry** button that calls `load()` again. On success, `render()` fills the caption, mounts the chart and table, shows the chart, and starts the ticker if the debt view is open.
+- **Chart hidden until data arrives:** before, a user who clicked before the fetch finished saw an empty chart title and an empty table. The `<figure>` now starts `hidden`.
+- **Fixed a latent bug found while reading the code:** `renderError()` set `hidden` on the chart, but `.chart { display: grid }` overrode the attribute, so the chart never hid. This was the same mechanism as the milestone 3 tooltip pill, and was found by reading the CSS, not by running the old code. A global `[hidden] { display: none !important }` now covers every element, and the tooltip-specific rule was removed.
+- **Reduced motion audited:** no code changes were needed. The dumpster animations, the FLIP, and the fade-in are all off, and the ticker updates once a second.
+
+**Changes**
+
+- `src/app.js`: `load()`, `render()` and a rewritten `renderError()` with a Retry button (built with DOM APIs). `stopTicker` is now declared before the first `load()` call.
+- `index.html`: the chart `<figure>` starts `hidden`.
+- `site.css`: global `[hidden]` rule, `.retry` button styles, and removal of the `.chart-tooltip[hidden]` rule.
+- `CLAUDE.md`: documented the load/retry/timeout flow, the `[hidden]` rule, the reduced-motion behavior, and the branch-per-change workflow with merges by the user's pull requests.
+
+**Verification**
+
+- `node --test`: 13 passed.
+- Headless Chrome at 390px:
+  - **Failure, then Retry:** the first API request was aborted through Playwright routing. The page showed `—`, the error message and Retry, with the chart hidden and the screen-reader summary set. Clicking Retry made a second request, after which the ticker showed a dollar amount, the chart was drawn, Retry was gone, and the caption was restored. The ticker then changed about 20 times per second. No page errors.
+  - **Hung request:** with an API call that never responds, the page shows "Loading…" and no chart, then switches to the error state after about 15 s.
+  - **Reduced motion** (`reducedMotion: 'reduce'`): the flame `animation-name` is `none`, the button has 0 Web Animations after the click, the `.debt` animation is `none`, and the ticker showed 3 distinct values in 3 s.
+  - **Normal motion:** the flame animation is `dumpster-flicker`, and the ticker showed 20 distinct values in 1 s.
+- **Regression:** all four mobile-resize scenarios from Interaction 8 still fit. Chart checks at 1280px and 375px pass: hover, keyboard, the 27-row table, no horizontal scroll, and no errors.
+
+**Attempted Approach / Resolution**
+
+The first error-state screenshot looked like the landing page. It was taken in the instant after the click, when the FLIP's first frame puts the dumpster back at its landing position and the debt section hasn't started fading in yet. Re-capturing after 600 ms showed the correct error state. This was a test-timing artifact, not a page bug.
+
+### Interaction 10 — Milestone 4 committed; README
+
+**User Prompt**
+
+> commit milestone 4
+
+> stop the local server
+
+> Write a detailed README.md file for this project explaining its design (through the planning), how the APIs are utilized, and how to run it
+
+**Agent Outcome**
+
+- Committed milestone 4 as `ce6825d` on `v2_refinement`, which the user then pushed. It is not merged into `main` at the time of writing.
+- Stopped the `python3 -m http.server 8000` process.
+- Wrote [`README.md`](README.md) on `v2_refinement`, since it documents the finished milestone 4 code. Sections:
+  - running and deploying;
+  - how the page works (with a diagram);
+  - how the Treasury API is used: endpoint, query parameters, response shape, parsing, the 5-interval calendar-time rate with a worked example using the 2026-10-08 rows (≈ $16.0B/day, compared with ≈ $22.4B/day for a per-record average), projection anchoring, downsampling, formatting, and CORS;
+  - the four planning decisions and their reasoning;
+  - visual design and the FLIP transition;
+  - project structure and reuse of the dumpster component;
+  - testing;
+  - accessibility and reduced motion;
+  - gotchas;
+  - how the project was built.
+
+**Rationale**
+
+The README explains the *why* behind the user's planning decisions and the API usage. `CLAUDE.md` stays focused on what an agent needs to edit the code.
+
+**Changes**
+
+- `README.md`: created.
+
+**Verification**
+
+- Checked the README's claims against the code and the observed data. Two drafting errors were caught and fixed:
+  - The minimum Node version had been "18+". The tests depend on Node's automatic ES-module detection, because the repo has no `package.json`, so the README now says 22.7+ or 20.19+.
+  - The caption in the diagram showed `$40.28T`, but the page prints full dollars.
+- Ran the README's commands. `node --test` passed 13 tests and the name-filtered run passed 3. `python3 -m http.server 8000` served `/`, `/asset/index.html` and `/src/app.js` with HTTP 200. The server was stopped afterwards.
+- Did not test the `git clone` step or a deployment to a static host.
