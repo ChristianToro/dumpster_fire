@@ -11,6 +11,8 @@
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
+/* Component rules like `.chart { display: grid }` would otherwise override the hidden attribute. */
+[hidden] { display: none !important; }
 body {
   margin: 0;
   background: var(--bg);
@@ -66,6 +68,19 @@ main {
 .caption { display: grid; margin: .5rem 0 0; color: var(--muted); font-size: .85rem; }
 .caption a { color: inherit; }
 .caption .rate { color: var(--accent); }
+.retry {
+  justify-self: center;
+  margin-top: .5rem;
+  padding: .3rem .9rem;
+  border: 1px solid var(--muted);
+  border-radius: 6px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.retry:hover { border-color: var(--text); }
+.retry:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 
 /* Chart: one series, so the title names it and there is no legend. */
 .chart { margin: 2.5rem 0 0; display: grid; gap: .75rem; min-width: 0; }
@@ -93,7 +108,6 @@ main {
   white-space: nowrap;
   pointer-events: none;
 }
-.chart-tooltip[hidden] { display: none; }
 .chart-tooltip strong { font-size: .9rem; }
 .chart-tooltip span { color: var(--muted); }
 

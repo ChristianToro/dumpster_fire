@@ -12,6 +12,7 @@ import {
 import { mountDebtChart, renderYearTable } from './chart.js';
 
 const SOURCE_URL = 'https://fiscaldata.treasury.gov/datasets/debt-to-the-penny/';
+const FETCH_TIMEOUT_MS = 15_000;
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
 const body = document.body;
@@ -19,16 +20,31 @@ const button = document.querySelector('.dumpster-button');
 const ticker = document.querySelector('.ticker');
 const summary = document.querySelector('[data-ticker-summary]');
 const caption = document.querySelector('[data-caption]');
+const chart = document.querySelector('.chart');
 
-// Start fetching on load so the data is usually ready before the first click.
-const data = fetchDebtSeries().then((series) => ({ series, rate: dailyRate(series) }));
-data.then(renderCaption, renderError);
-data.then(({ series }) => {
-  mountDebtChart(document.querySelector('[data-chart]'), monthlySeries(series));
-  renderYearTable(document.querySelector('[data-year-table]'), yearEndSeries(series));
-}, () => {});
-
+// Start fetching on load so the data is usually ready before the first click. Retry calls load() again.
+let data;
 let stopTicker = () => {};
+load();
+
+function load() {
+  ticker.textContent = 'Loading…';
+  caption.replaceChildren();
+  summary.textContent = 'Loading the debt figure.';
+  data = fetchDebtSeries({ signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) })
+    .then((series) => ({ series, rate: dailyRate(series) }));
+  data.then(render, renderError);
+}
+
+// Runs once per successful load. Retry only exists after a failure, so the chart is never mounted twice.
+function render(loaded) {
+  renderCaption(loaded);
+  mountDebtChart(document.querySelector('[data-chart]'), monthlySeries(loaded.series));
+  renderYearTable(document.querySelector('[data-year-table]'), yearEndSeries(loaded.series));
+  chart.hidden = false;
+  startTicker(loaded);
+}
+
 
 button.addEventListener('click', () => {
   const showDebt = body.dataset.view !== 'debt';
@@ -73,9 +89,16 @@ function renderCaption({ series, rate }) {
 }
 
 function renderError() {
-  document.querySelector('.chart').hidden = true;
+  chart.hidden = true;
   ticker.textContent = '—';
-  caption.textContent = "Couldn't reach fiscaldata.treasury.gov.";
+  const message = document.createElement('span');
+  message.textContent = "Couldn't reach fiscaldata.treasury.gov.";
+  const retry = document.createElement('button');
+  retry.type = 'button';
+  retry.className = 'retry';
+  retry.textContent = 'Retry';
+  retry.addEventListener('click', load, { once: true });
+  caption.replaceChildren(message, retry);
   summary.textContent = 'The debt figure could not be loaded.';
 }
 
