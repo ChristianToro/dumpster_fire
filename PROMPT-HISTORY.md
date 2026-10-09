@@ -248,3 +248,74 @@ The site accent `#ff941e` failed the dark-mode lightness band (L 0.764, band 0.4
 **Attempted Approach / Resolution**
 
 The first render showed an empty pill under the chart. The hidden tooltip was still visible because `.chart-tooltip { display: grid }` overrode the `hidden` attribute. Fixed with a `[hidden] { display: none }` rule. The top plot margin was also cut from 24px to 12px.
+
+### Interaction 7 — Milestone 3 committed; pause before milestone 4
+
+**User Prompt**
+
+> Only commit milestone 3
+
+> I pushed the v1_prototpye branch and set it as upstream, but I may have lost the progress that was on the main branch.
+
+**Agent Outcome**
+
+Committed milestone 3 as `b4a581c` and did not start milestone 4. Checked the user's worry about lost work on `main` using the reflog, `git fsck` and `git ls-remote`. Nothing was lost. `main` never had commits of its own: it was unborn when `v1_prototype` was created, and the reflog shows all four commits on `v1_prototype`. Explained the options for publishing `main`.
+
+**Collaboration**
+
+The user chose to pause after milestone 3. The user then set up `main` themselves in a terminal. Afterwards, local `main` and `origin/main` both point at `b4a581c`.
+
+### Interaction 8 — Fix: chart overflows the page on mobile
+
+**User Prompt**
+
+> I handled the changes on my end via a terminal. Create a new branch titled "/fix-UI-graph-error" to work where we will address the following:
+>
+> during an inspection of the deploy via the browser in localhost:8000, when the window is switched to a mobile screen (iPhone or Samsung), the landing page looks correct and is clickable, and correctly shrinks to the header. Once in view, the graph is not displaying correctly: it skews the view of the page to the left, away from the center. The graph should fit across the page without side scrolling for a better design and UX.
+>
+> Make the correction, detailing what needed changing, and log this into prompt-history.
+
+**Agent Outcome**
+
+Created branch `fix-UI-graph-error` from `main` (`b4a581c`). Git rejects a branch name that starts with `/`, so the slash was dropped.
+
+Reproduced the bug in headless Chrome:
+
+| Scenario | Before | After |
+|---|---|---|
+| Fresh load, iPhone 13 emulation (390px) | fits (chart 358px) | fits (358px) |
+| Fresh load, Galaxy S9+ emulation (320px) | no scroll, but section 300px wide (gutters eaten) | 288px, correct 16px gutters |
+| Chart open at 1280px → switch to 390px | **page 976px wide, chart stuck at 960px** | 390px, chart redrawn at 358px |
+| Chart drawn at 1280px → landing → 390px → open | **page 976px wide, chart stuck at 960px** | 390px, chart redrawn at 358px |
+
+This explains why the milestone 3 check at a fixed 375px passed. The bug needs the chart to have been drawn wider first, which is what switching DevTools to a phone does.
+
+**Root cause:** the chart sits in nested CSS grids (`main` → `.debt` → `.chart` → `.chart-plot`). Grid items default to `min-width: auto`, so they can't shrink below their content's minimum width. The SVG keeps an explicit `width` attribute from its last render, `960`. That pins every ancestor column at 960px, so the page overflows to the right and looks shifted left. And because the container never gets narrower, the `ResizeObserver` in `mountDebtChart()` never fires and the chart never redraws at the new width.
+
+**Fix (CSS only):**
+
+`site.css`
+
+```css
+.debt { display: none; width: min(960px, 100%); min-width: 0; text-align: center; }
+.chart { margin: 2.5rem 0 0; display: grid; gap: .75rem; min-width: 0; }
+.chart-plot { position: relative; min-width: 0; min-height: 220px; touch-action: pan-y; }
+/* Scales the previous render down for the frame before the ResizeObserver redraws it. */
+.chart-svg { display: block; max-width: 100%; height: auto; overflow: visible; }
+```
+
+- `min-width: 0` on the three grid items lets the columns shrink to the viewport. The `ResizeObserver` then sees the new width and redraws the chart at the real pixel size.
+- `max-width: 100%; height: auto` on the SVG scales the old render proportionally through its `viewBox` for the one frame before the redraw, so the page never overflows even briefly.
+
+**Changes**
+
+- `site.css`: `min-width: 0` on `.debt`, `.chart` and `.chart-plot`; `max-width: 100%; height: auto` on `.chart-svg`; a comment explaining why.
+- `CLAUDE.md`: added a chart gotcha. Grid ancestors of the SVG need `min-width: 0`, and narrow-screen layout has to be tested by resizing down from desktop, not only by a fresh phone-width load.
+
+**Verification**
+
+- Re-ran the four scenarios above in headless Chrome using Playwright's built-in `iPhone 13` and `Galaxy S9+` device profiles. All fit with `scrollWidth == innerWidth`.
+- Round trip 390 → 1280 → 768 → 390px with the chart open: it redraws at 960, 736 and 358px, never scrolls sideways, and stays centered (screenshot reviewed).
+- Desktop regression at 1280px: the chart is still 960×360, the hover tooltip still reads `$23.41T · Feb 28, 2020`, and there are no console errors.
+- No JS changed, so `node --test` was not affected and was not re-run.
+- Not tested on a physical iPhone or Samsung device, only Chrome's device emulation.
