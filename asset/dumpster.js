@@ -41,7 +41,7 @@
 <rect x="230" y="178" width="7" height="24" fill="#174e43"/>
 <rect x="128" y="180" width="65" height="21" fill="#d6b969"/>
 <rect x="131" y="183" width="59" height="15" fill="#e9d58b"/>
-<text x="160" y="193" font-family="monospace" font-size="9" font-weight="900" text-anchor="middle" fill="#26352b">HOT MESS</text>
+<text x="160" y="193" font-family="monospace" font-size="9" font-weight="900" text-anchor="middle" fill="#26352b">DUMPSTER</text>
 <rect x="77" y="211" width="17" height="9" fill="#0d131b"/>
 <rect x="228" y="211" width="17" height="9" fill="#0d131b"/>
 <rect x="81" y="214" width="8" height="6" fill="#596577"/>
